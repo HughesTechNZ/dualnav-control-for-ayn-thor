@@ -10,8 +10,8 @@ android {
         applicationId "nz.co.thor.navcontrol"
         minSdk 29
         targetSdk 35
-        versionCode 13
-        versionName "1.0"
+        versionCode 16
+        versionName "1.1"
     }
 
     buildTypes {

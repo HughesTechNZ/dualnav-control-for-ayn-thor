@@ -65,7 +65,7 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView eyebrow = text(
-                "DUALNAV · ROOT UTILITY · v1.0",
+                "DUALNAV · ROOT UTILITY · v1.1",
                 12,
                 ACCENT);
         eyebrow.setLetterSpacing(0.12f);
@@ -165,7 +165,7 @@ public final class MainActivity extends Activity {
         root.setPadding(dp(22), dp(14), dp(22), dp(16));
 
         TextView eyebrow = text(
-                "DUALNAV · ROOT UTILITY · v1.0",
+                "DUALNAV · ROOT UTILITY · v1.1",
                 11,
                 ACCENT);
         eyebrow.setLetterSpacing(0.12f);

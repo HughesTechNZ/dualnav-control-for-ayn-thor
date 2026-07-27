@@ -17,6 +17,9 @@ Android 13 firmware.
   hardware-button navigation.
 - **Block the lower-screen reveal gesture:** an LSPosed framework hook prevents
   the display 4 bottom swipe from revealing `NavigationBar4`.
+- **Suppress recreated lower navigation windows:** while the workaround is
+  enabled, the framework hook also hides `NavigationBar4` if SystemUI recreates
+  it during transitions between ordinary non-fullscreen apps.
 - **Restore standard gestures:** removes the workaround and restores Android
   gesture navigation.
 - **Restore three-button navigation:** removes the workaround and restores
@@ -81,6 +84,16 @@ were reviewed and tested by the project owner on real AYN Thor hardware.
 
 AI-assisted output can contain mistakes. Review the source and understand the
 root/LSPosed changes before installing or modifying the project.
+
+## Changelog
+
+### v1.1
+
+- Fixed the lower navigation bar reappearing during transitions between
+  non-fullscreen apps.
+- The LSPosed hook now suppresses newly laid-out `NavigationBar4` windows while
+  the workaround is active.
+- Restore operations remain available and the primary display is unaffected.
 
 ## License
 
