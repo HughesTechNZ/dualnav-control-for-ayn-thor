@@ -1,0 +1,27 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "nz.co.thor.navcontrol"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "nz.co.thor.navcontrol"
+        minSdk 29
+        targetSdk 35
+        versionCode 13
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    compileOnly files("libs/xposed-api-82.jar")
+}
