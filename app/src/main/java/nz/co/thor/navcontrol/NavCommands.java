@@ -37,7 +37,14 @@ final class NavCommands {
             "printf 'hide_nav_bar='; settings get global hide_nav_bar; " +
             "printf 'secondary_disabled='; settings get global second_disable_back_gesture; " +
             "printf 'policy='; settings get global policy_control; " +
+            "printf 'auto_immersive='; settings get global dualnav_auto_immersive; " +
             "printf 'hide_navbar_window='; getprop persist.wm.debug.hide_navbar_window";
+
+    static final String AUTO_IMMERSIVE_ON =
+            "settings put global dualnav_auto_immersive 1";
+
+    static final String AUTO_IMMERSIVE_OFF =
+            "settings put global dualnav_auto_immersive 0";
 
     static final String RESTART_SYSTEM_UI = "killall com.android.systemui";
 }

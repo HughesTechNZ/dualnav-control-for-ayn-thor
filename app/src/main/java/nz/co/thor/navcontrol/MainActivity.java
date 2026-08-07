@@ -30,6 +30,7 @@ public final class MainActivity extends Activity {
     private TextView statusView;
     private TextView workingView;
     private CheckBox bootCheck;
+    private CheckBox autoImmersiveCheck;
 
     private enum PostAction {
         NONE,
@@ -65,7 +66,7 @@ public final class MainActivity extends Activity {
         scroll.addView(root);
 
         TextView eyebrow = text(
-                "DUALNAV · ROOT UTILITY · v1.1",
+                "DUALNAV · ROOT UTILITY · v1.2",
                 12,
                 ACCENT);
         eyebrow.setLetterSpacing(0.12f);
@@ -165,7 +166,7 @@ public final class MainActivity extends Activity {
         root.setPadding(dp(22), dp(14), dp(22), dp(16));
 
         TextView eyebrow = text(
-                "DUALNAV · ROOT UTILITY · v1.1",
+                "DUALNAV · ROOT UTILITY · v1.2",
                 11,
                 ACCENT);
         eyebrow.setLetterSpacing(0.12f);
@@ -277,6 +278,21 @@ public final class MainActivity extends Activity {
         bootParams.setMargins(0, dp(7), 0, 0);
         actions.addView(bootCheck, bootParams);
 
+        autoImmersiveCheck = new CheckBox(this);
+        autoImmersiveCheck.setText("Auto-force immersive apps");
+        autoImmersiveCheck.setTextColor(TEXT);
+        autoImmersiveCheck.setTextSize(14);
+        autoImmersiveCheck.setButtonTintList(new android.content.res.ColorStateList(
+                new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+                new int[] { ACCENT, MUTED }));
+        autoImmersiveCheck.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!buttonView.isPressed()) return;
+            runAction(isChecked ? NavCommands.AUTO_IMMERSIVE_ON : NavCommands.AUTO_IMMERSIVE_OFF,
+                    isChecked ? "Automatic immersive mode enabled" : "Automatic immersive mode disabled",
+                    PostAction.NONE);
+        });
+        actions.addView(autoImmersiveCheck, matchWrap());
+
         TextView note = text("Root required · LSPosed scope: System Framework", 11, MUTED);
         note.setPadding(0, dp(4), 0, 0);
         actions.addView(note);
@@ -375,6 +391,10 @@ public final class MainActivity extends Activity {
                 } else {
                     statusView.setText(formatStatus(result.output));
                     statusView.setTextColor(TEXT);
+                    if (autoImmersiveCheck != null) {
+                        autoImmersiveCheck.setChecked(
+                                result.output.contains("auto_immersive=1"));
+                    }
                 }
             });
         });

@@ -2,6 +2,8 @@ package nz.co.thor.navcontrol;
 
 import android.content.Context;
 import android.provider.Settings;
+import android.view.View;
+import android.view.WindowManager;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
@@ -73,12 +75,13 @@ public final class ThorSwipeHook implements IXposedHookLoadPackage {
                             }
 
                             Object windowState = param.args[0];
+                            Context context = (Context) XposedHelpers.getObjectField(
+                                    param.thisObject, "mContext");
+                            forceApplicationImmersive(windowState, context);
                             int displayId = (int) XposedHelpers.callMethod(
                                     windowState, "getDisplayId");
                             String title = String.valueOf(
                                     XposedHelpers.callMethod(windowState, "getLastTitle"));
-                            Context context = (Context) XposedHelpers.getObjectField(
-                                    param.thisObject, "mContext");
                             if (displayId == THOR_LOWER_DISPLAY_ID
                                     && "NavigationBar4".equals(title)
                                     && isWorkaroundEnabled(context)) {
@@ -99,5 +102,35 @@ public final class ThorSwipeHook implements IXposedHookLoadPackage {
     private static boolean isWorkaroundEnabled(Context context) {
         return Settings.Global.getInt(
                 context.getContentResolver(), "hide_nav_bar", 0) == 1;
+    }
+
+    private static void forceApplicationImmersive(Object windowState, Context context) {
+        if (Settings.Global.getInt(context.getContentResolver(),
+                "dualnav_auto_immersive", 0) != 1) return;
+        try {
+            WindowManager.LayoutParams attrs = (WindowManager.LayoutParams)
+                    XposedHelpers.callMethod(windowState, "getAttrs");
+            if (attrs.type < WindowManager.LayoutParams.FIRST_APPLICATION_WINDOW
+                    || attrs.type > WindowManager.LayoutParams.LAST_APPLICATION_WINDOW) return;
+
+            String packageName = attrs.packageName;
+            if (packageName == null
+                    || packageName.equals("android")
+                    || packageName.equals("com.android.systemui")
+                    || packageName.equals("com.android.settings")
+                    || packageName.equals("com.android.launcher3")
+                    || packageName.equals("nz.co.thor.navcontrol")) return;
+
+            attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            attrs.flags &= ~WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN;
+            attrs.systemUiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        } catch (Throwable throwable) {
+            XposedBridge.log("ThorNavControl auto immersive failed: " + throwable);
+        }
     }
 }
