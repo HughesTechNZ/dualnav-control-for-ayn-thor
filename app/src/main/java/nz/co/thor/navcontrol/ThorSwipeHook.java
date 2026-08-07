@@ -60,7 +60,7 @@ public final class ThorSwipeHook implements IXposedHookLoadPackage {
                             int displayId = (int) XposedHelpers.callMethod(
                                     param.args[0], "getDisplayId");
                             Context context = (Context) param.args[0];
-                            if (displayId == THOR_LOWER_DISPLAY_ID
+                            if ((displayId == 0 || displayId == THOR_LOWER_DISPLAY_ID)
                                     && isWorkaroundEnabled(context)) {
                                 param.setResult(0);
                             }
@@ -82,8 +82,11 @@ public final class ThorSwipeHook implements IXposedHookLoadPackage {
                                     windowState, "getDisplayId");
                             String title = String.valueOf(
                                     XposedHelpers.callMethod(windowState, "getLastTitle"));
-                            if (displayId == THOR_LOWER_DISPLAY_ID
-                                    && "NavigationBar4".equals(title)
+                            boolean isThorNavigationWindow =
+                                    (displayId == 0 && "NavigationBar0".equals(title))
+                                    || (displayId == THOR_LOWER_DISPLAY_ID
+                                    && "NavigationBar4".equals(title));
+                            if (isThorNavigationWindow
                                     && isWorkaroundEnabled(context)) {
                                 XposedHelpers.setIntField(
                                         windowState, "mRequestedHeight", 0);
@@ -96,6 +99,56 @@ public final class ThorSwipeHook implements IXposedHookLoadPackage {
                     "ThorNavControl: display-4 navigation layout hooks installed");
         } catch (Throwable throwable) {
             XposedBridge.log("ThorNavControl height hook failed: " + throwable);
+        }
+
+        try {
+            Class<?> insetsPolicy = XposedHelpers.findClass(
+                    "com.android.server.wm.InsetsPolicy",
+                    loadPackageParam.classLoader);
+            XposedBridge.hookAllMethods(insetsPolicy, "showTransient",
+                    new XC_MethodHook() {
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) {
+                            if (param.args.length == 0 || !(param.args[0] instanceof int[])) {
+                                return;
+                            }
+                            Object displayContent = XposedHelpers.getObjectField(
+                                    param.thisObject, "mDisplayContent");
+                            int displayId = (int) XposedHelpers.callMethod(
+                                    displayContent, "getDisplayId");
+                            if (displayId != 0 && displayId != THOR_LOWER_DISPLAY_ID) {
+                                return;
+                            }
+                            Object displayPolicy = XposedHelpers.getObjectField(
+                                    param.thisObject, "mPolicy");
+                            Context context = (Context) XposedHelpers.getObjectField(
+                                    displayPolicy, "mContext");
+                            if (!isWorkaroundEnabled(context)) {
+                                return;
+                            }
+
+                            int[] requestedTypes = (int[]) param.args[0];
+                            int kept = 0;
+                            for (int type : requestedTypes) {
+                                if (type != 1) kept++;
+                            }
+                            if (kept == requestedTypes.length) return;
+                            if (kept == 0) {
+                                param.setResult(null);
+                                return;
+                            }
+                            int[] filteredTypes = new int[kept];
+                            int index = 0;
+                            for (int type : requestedTypes) {
+                                if (type != 1) filteredTypes[index++] = type;
+                            }
+                            param.args[0] = filteredTypes;
+                        }
+                    });
+            XposedBridge.log(
+                    "ThorNavControl: transient navigation reveal hook installed");
+        } catch (Throwable throwable) {
+            XposedBridge.log("ThorNavControl transient hook failed: " + throwable);
         }
     }
 
